@@ -1,0 +1,9 @@
+.vercel
+.DS_Store
+Thumbs.db
+*.log
+__pycache__/
+sample_data/
+tests/output/
+templates/*-circlefit.png
+templates/*-fill.png
