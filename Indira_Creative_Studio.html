@@ -58,7 +58,20 @@
   .banner-in{background:var(--warn-bg); border:1px solid var(--warn-br); color:#78350F; border-radius:var(--r-card); padding:10px 14px; font-size:13px; display:flex; gap:10px;}
   .banner.hide,.hide{display:none !important;}
 
-  .steps{margin-top:20px; display:flex; gap:12px; flex-wrap:wrap; align-items:stretch;}
+  .howto{
+    margin-top:20px;
+    background:#FFF0F3;
+    border:1.5px solid #7A1F2E;
+    border-radius:18px;
+    padding:16px 20px 14px;
+    color:#7A1F2E;
+  }
+  .howto-title{font-weight:700; font-size:15px; line-height:1.35; margin-bottom:8px;}
+  .howto-list{margin:0; padding-left:22px; font-size:14px;}
+  .howto-list li{margin:3px 0;}
+  .howto-list strong{font-weight:700;}
+
+  .steps{margin-top:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:stretch;}
   .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--r-card); padding:12px 14px; display:flex; gap:12px; align-items:center; min-height:64px;}
   .card.drop{flex:1 1 240px; cursor:pointer; transition:border-color 150ms ease, background 150ms ease;}
   .card.drop:hover{border-color:var(--border-strong);}
@@ -183,6 +196,15 @@
     <span><strong>Preview mode.</strong> This page is inside a preview frame, which blocks file saving. Download this HTML file and open it in Chrome for one-click PNG and ZIP downloads.</span>
   </div></div>
 
+  <section class="howto" aria-label="Mandatory steps">
+    <p class="howto-title">Mandatory steps · Create your Rakhi creative</p>
+    <ol class="howto-list">
+      <li><strong>Step 1:</strong> Upload your photo.</li>
+      <li><strong>Step 2:</strong> Write your <strong>Name</strong> and <strong>Designation</strong>.</li>
+      <li><strong>Step 3:</strong> Download the image.</li>
+    </ol>
+  </section>
+
   <div class="steps">
     <div class="card" id="modeCard">
       <span class="num">1</span>
@@ -293,7 +315,7 @@
 
 <script>
 "use strict";
-const VERSION = 'v5.5 · Banker Rakshabandhan 2026';
+const VERSION = 'v5.6 · Banker Rakshabandhan 2026';
 
 const BUILTIN = {
   employee: 'templates/employee-rakshabandhan.png?v=54',
