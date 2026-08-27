@@ -293,11 +293,11 @@
 
 <script>
 "use strict";
-const VERSION = 'v5.3 · Banker Rakshabandhan 2026';
+const VERSION = 'v5.5 · Banker Rakshabandhan 2026';
 
 const BUILTIN = {
-  employee: 'templates/employee-rakshabandhan.png?v=53',
-  doctor: 'templates/doctor-rakshabandhan.png?v=53'
+  employee: 'templates/employee-rakshabandhan.png?v=54',
+  doctor: 'templates/doctor-rakshabandhan.png?v=54'
 };
 
 /* Fallback: measured inner orange ring on the 768×1024 Banker art. */
@@ -316,7 +316,7 @@ const PRESETS = {
     paperY: [676, 688],
     paperMaxX: 490,
     textCover: [
-      { box: [488, 676, 654, 761] }
+      { box: [478, 676, 668, 761] }
     ]
   },
   doctor: {
@@ -331,7 +331,7 @@ const PRESETS = {
     paperY: [668, 680],
     paperMaxX: 490,
     textCover: [
-      { box: [490, 668, 656, 755] }
+      { box: [478, 668, 668, 755] }
     ]
   }
 };
@@ -540,20 +540,34 @@ function isPaperPx(r, g, b){
   const sat = Math.max(r, g, b) - Math.min(r, g, b);
   return avg >= 208 && sat <= 58 && (r - g) < 32 && (r - b) < 58;
 }
-function pickPaper(src, w, h, x, y, paperY0, paperY1, paperMaxX){
-  const xx = Math.max(0, Math.min(w - 1, Math.min(x, paperMaxX)));
-  const span = Math.max(1, paperY1 - paperY0);
-  for (let k = 0; k < span; k++){
-    const sy = paperY0 + ((y + k) % span);
-    if (sy < 0 || sy >= h) continue;
-    const i = (sy * w + xx) * 4;
-    if (isPaperPx(src[i], src[i + 1], src[i + 2]) && (src[i] - src[i + 1]) < 28) return i;
+function isOrangeDeco(r, g, b){
+  const sat = Math.max(r, g, b) - Math.min(r, g, b);
+  return r > 150 && (r - Math.min(g, b)) > 35 && sat > 35;
+}
+function paperPixel(src, w, h, x, y, paperMaxX){
+  const tryAt = (xx, yy) => {
+    if (xx < 0 || yy < 0 || xx >= w || yy >= h) return -1;
+    const i = (yy * w + xx) * 4;
+    return isPaperPx(src[i], src[i + 1], src[i + 2]) && !isOrangeDeco(src[i], src[i + 1], src[i + 2]) ? i : -1;
+  };
+  let i = tryAt(x, y);
+  if (i >= 0) return i;
+  const yUp = Math.max(0, y);
+  const extras = [
+    [x, yUp],
+    [Math.min(x, paperMaxX), yUp],
+    [paperMaxX, yUp]
+  ];
+  for (let k = 0; k < extras.length; k++){
+    i = tryAt(extras[k][0], extras[k][1]);
+    if (i >= 0) return i;
   }
-  for (let lx = xx - 1; lx >= Math.max(0, xx - 52); lx--){
-    const i = (y * w + lx) * 4;
-    if (isPaperPx(src[i], src[i + 1], src[i + 2])) return i;
+  for (let lx = Math.min(x, w - 1); lx >= Math.max(0, x - 90); lx--){
+    i = tryAt(lx, y);
+    if (i >= 0) return i;
   }
-  return (Math.max(0, paperY0) * w + xx) * 4;
+  const fb = (Math.max(0, Math.min(h - 1, y)) * w + Math.max(0, Math.min(w - 1, paperMaxX))) * 4;
+  return fb;
 }
 function coverPlaceholderLines(ctx, orig, covers, filled, paperY, paperMaxX){
   if (!orig || !covers || !covers.length || !filled.some(Boolean)) return;
@@ -565,28 +579,26 @@ function coverPlaceholderLines(ctx, orig, covers, filled, paperY, paperMaxX){
   const src = tctx.getImageData(0, 0, w, h).data;
   const dest = ctx.getImageData(0, 0, w, h);
   const out = dest.data;
-  const band = paperY && paperY.length === 2 ? paperY : [covers[0].box[1] - 14, covers[0].box[1] - 2];
   const maxX = paperMaxX == null ? w - 1 : paperMaxX;
-  let cream = [252, 242, 233];
-  const sampleX = Math.max(0, Math.min(w - 1, maxX));
-  for (let y = band[0]; y < band[1]; y++){
-    const i = (y * w + sampleX) * 4;
-    if (isPaperPx(src[i], src[i + 1], src[i + 2])){
-      cream = [src[i], src[i + 1], src[i + 2]];
-      break;
-    }
-  }
   covers.forEach(c => {
     let [x0, y0, x1, y1] = c.box;
     x0 = Math.max(0, x0); y0 = Math.max(0, y0);
     x1 = Math.min(w, x1); y1 = Math.min(h, y1);
     if (x1 - x0 < 2 || y1 - y0 < 2) return;
+    const yUp = Math.max(0, y0 - 14);
+    const yDn = Math.min(h - 1, y1 + 8);
     for (let y = y0; y < y1; y++){
       for (let x = x0; x < x1; x++){
         const i = (y * w + x) * 4;
-        out[i] = cream[0];
-        out[i + 1] = cream[1];
-        out[i + 2] = cream[2];
+        if (isOrangeDeco(src[i], src[i + 1], src[i + 2])) continue;
+        let p = paperPixel(src, w, h, x, yUp, maxX);
+        if (!isPaperPx(src[p], src[p + 1], src[p + 2])){
+          p = paperPixel(src, w, h, x, yDn, maxX);
+        }
+        out[i] = src[p];
+        out[i + 1] = src[p + 1];
+        out[i + 2] = src[p + 2];
+        out[i + 3] = 255;
       }
     }
   });
